@@ -8,12 +8,13 @@ RUN go mod download
 
 COPY . .
 
-RUN go build ./cmd/todoapp-${SERVER_PROTOCOL}
+# TODO: use SERVER_PROTOCOL env var
+RUN go build ./cmd/todoapp-http
 
 # ------------------------
 FROM alpine:3.19
 
 WORKDIR /app
-COPY --from=build /app/todoapp .
+COPY --from=build /app/todoapp-http .
 
-CMD ["./todoapp"]
+CMD ["./todoapp-http"]

@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var todoController controllers.TodoController
+
 func main() {
 	// read env
 	env := config.ReadEnv()
@@ -24,14 +26,16 @@ func main() {
 		db.RunAutoMigartion()
 	}
 
-	// controllers
-	// todo controllers
-	todoControllers := r.Group("/todos")
+	// routes
+	// todo routes
+	todoRoutes := r.Group("/todos")
 
-	todoControllers.GET("/", controllers.GetTodos)
-	todoControllers.GET("/:id", controllers.GetTodo)
-	todoControllers.POST("/", controllers.CreateTodo)
-	todoControllers.PATCH("/:id", controllers.UpdateTodo)
+	todoRoutes.GET("/", todoController.GetAllTodos)
+	todoRoutes.GET("/:id", todoController.GetTodo)
+	todoRoutes.POST("/", todoController.CreateTodo)
+	todoRoutes.PATCH("/:id", todoController.UpdateTodo)
+	todoRoutes.PATCH("/:id/mark-as-complete", todoController.MarkTodoAsCompleted)
+	todoRoutes.PATCH("/:id/mark-as-incomplete", todoController.MarkTodoAsInCompleted)
 
 	// run server
 	addr := fmt.Sprintf(":%d", env.PORT)

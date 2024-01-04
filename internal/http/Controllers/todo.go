@@ -2,66 +2,109 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
-	db "todoapp/internal/models"
+	helpers "todoapp/internal"
+	services "todoapp/internal/services/todo"
 
 	"github.com/gin-gonic/gin"
 )
 
-type CreateTodoInput struct {
-  Content  string `json:"content" binding:"required"`
+type TodoController struct{}
+
+type createTodoInput struct {
+	Content string `json:"content" binding:"required"`
 }
-type UpdateTodoInput struct {
-  Content  string `json:"content" binding:"required"`
-  IsComplete  *bool `json:"isComplete" binding:"required"`
-}
-
-func GetTodo(c *gin.Context) {
-	var todo db.Todo
-
-	if err := db.DB.Where("id = ?", c.Param("id")).First(&todo).Error; err != nil {
-    c.JSON(http.StatusNotFound, gin.H{"error": "Record not found!"})
-    return
-  }
-
-
-	c.JSON(http.StatusOK, gin.H{"data": todo})
-}
-func GetTodos(c *gin.Context) {
-	var todos []db.Todo
-	db.DB.Order("id ASC").Find(&todos)
-
-	c.JSON(http.StatusOK, gin.H{"data": todos})
+type updateTodoContentInput struct {
+	Content    string `json:"content" binding:"required"`
 }
 
-func CreateTodo(c *gin.Context) {
-	var input CreateTodoInput
-  if err := c.ShouldBindJSON(&input); err != nil {
-    c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-    return
-  }
-	todo := db.Todo{Content: input.Content, IsComplete: false}
-	db.DB.Create(&todo)
+var todoService services.TodoService;
 
-	c.JSON(http.StatusOK, gin.H{"data": todo})
-}
-
-func UpdateTodo(c *gin.Context) {
-	var input UpdateTodoInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+func (tc *TodoController) GetTodo(c *gin.Context) {
+	id, err := helpers.GetIdFromString(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found!"})
 		return
 	}
 
-	todo := db.Todo{ID: uint(id)}
+	todo, err := todoService.GetTodo(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found!"})
+		return
+	}
 
-	db.DB.Model(&todo).Updates(input)
+	c.JSON(http.StatusOK, gin.H{"data": todo})
+}
+
+func (tc *TodoController) GetAllTodos(c *gin.Context) {
+	todos := todoService.GetAllTodos()
+
+	c.JSON(http.StatusOK, gin.H{"data": todos})
+}
+
+func (tc *TodoController) CreateTodo(c *gin.Context) {
+	var input createTodoInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	todo, err := todoService.CreateTodo(input.Content)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": todo})
+}
+
+func (tc *TodoController) UpdateTodo(c *gin.Context) {
+	var input updateTodoContentInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id, err := helpers.GetIdFromString(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found!"})
+		return
+	}
+
+	todo, err := todoService.UpdateTodoContent(id, input.Content)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": todo})
+}
+
+func (tc *TodoController) MarkTodoAsCompleted(c *gin.Context) {
+	id, err := helpers.GetIdFromString(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found!"})
+		return
+	}
+
+	todo, err := todoService.MarkTodoAsCompleted(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found!"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": todo})
+}
+
+func (tc *TodoController) MarkTodoAsInCompleted(c *gin.Context) {
+	id, err := helpers.GetIdFromString(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found!"})
+		return
+	}
+
+	todo, err := todoService.MarkTodoAsInCompleted(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found!"})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"data": todo})
 }

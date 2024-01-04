@@ -2,7 +2,9 @@ package services
 
 import db "todoapp/internal/models"
 
-func GetTodo(id uint) (*db.Todo, error) {
+type TodoService struct {}
+
+func (ts *TodoService) GetTodo(id uint) (*db.Todo, error) {
 	todo := &db.Todo{ID: id}
 	if err := db.DB.Find(todo).Error; err != nil {
 		return nil, err
@@ -12,14 +14,14 @@ func GetTodo(id uint) (*db.Todo, error) {
 }
 
 // TODO: add pagination
-func GetAllTodos() []db.Todo {
+func (ts *TodoService) GetAllTodos() []db.Todo {
 	var todos []db.Todo
 	db.DB.Order("id ASC").Find(&todos)
 
 	return todos
 }
 
-func CreateTodo(content string) (*db.Todo, error) {
+func (ts *TodoService) CreateTodo(content string) (*db.Todo, error) {
 	todo := &db.Todo{Content: content, IsComplete: false}
 	if err := db.DB.Create(&todo).Error; err != nil {
 		return nil, err
@@ -28,7 +30,7 @@ func CreateTodo(content string) (*db.Todo, error) {
 	return todo, nil
 }
 
-func UpdateTodoContent(id uint, content string) (*db.Todo, error) {
+func (ts *TodoService) UpdateTodoContent(id uint, content string) (*db.Todo, error) {
 	todo := &db.Todo{ID: id}
 
 	if err := db.DB.Model(todo).Updates(db.Todo{Content: content}).Error; err != nil {
@@ -38,17 +40,17 @@ func UpdateTodoContent(id uint, content string) (*db.Todo, error) {
 	return todo, nil
 }
 
-func MarkTodoAsCompleted(id uint) (*db.Todo, error) {
+func (ts *TodoService) MarkTodoAsCompleted(id uint) (*db.Todo, error) {
 	return changeTodoCompleteness(id, true)
 }
 
-func MarkTodoAsInCompleted(id uint) (*db.Todo, error) {
+func (ts *TodoService) MarkTodoAsInCompleted(id uint) (*db.Todo, error) {
 	return changeTodoCompleteness(id, false)
 }
 
 // private
-func changeTodoCompleteness(id uint , isComplete bool) (*db.Todo, error) {
-todo := &db.Todo{ID: id}
+func changeTodoCompleteness(id uint, isComplete bool) (*db.Todo, error) {
+	todo := &db.Todo{ID: id}
 
 	if err := db.DB.Model(todo).Updates(db.Todo{IsComplete: isComplete}).Error; err != nil {
 		return nil, err
