@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o todoapp .
+RUN go build ./cmd/todoapp-${SERVER_PROTOCOL}
 
 # ------------------------
 FROM alpine:3.19
