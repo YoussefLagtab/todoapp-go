@@ -12,7 +12,7 @@ services:
     volumes:
       - todoappgo_db_data:/var/lib/postgresql/data
     networks:
-      - todoAppNetwork
+      - todoappgoNetwork
 
   api:
     build:
@@ -32,11 +32,11 @@ services:
       - RUN_AUTO_MIGRATION=${RUN_AUTO_MIGRATION}
       - PORT=${PORT}
     networks:
-      - todoAppNetwork
+      - todoappgoNetwork
 
 volumes:
   todoappgo_db_data:
 
 networks:
-  todoAppNetwork:
+  todoappgoNetwork:
     driver: bridge
